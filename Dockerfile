@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY setup.py README.md ./
 COPY chemcrow ./chemcrow
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -e .
 
-COPY run_agent.py .
+COPY run_agent.py query_agent.py ./
 ENTRYPOINT ["python", "run_agent.py"]
