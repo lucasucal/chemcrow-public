@@ -129,14 +129,21 @@ class ChatAnthropicMessages(BaseChatModel):
         return max(1, len(text) // 4)
 
 
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_MODEL = "qwen/qwen3-32b"
+
+
 def detect_provider(model: str) -> str:
+    # OpenRouter slugs look like "meta-llama/llama-3.2-3b-instruct:free"
+    if "/" in model or model.startswith("openrouter"):
+        return "openrouter"
     if model.startswith("claude"):
         return "anthropic"
     if model.startswith("gpt-") or model.startswith("text-"):
         return "openai"
     raise ValueError(
         f"Cannot detect LLM provider for model '{model}'. "
-        "Use a claude-* or gpt-* model name."
+        "Use an OpenRouter slug (org/model), claude-*, or gpt-* name."
     )
 
 
@@ -145,6 +152,8 @@ def get_api_key(provider: str, api_key: Optional[str] = None) -> Optional[str]:
         return api_key
     if provider == "anthropic":
         return os.getenv("ANTHROPIC_API_KEY")
+    if provider == "openrouter":
+        return os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if provider == "openai":
         return os.getenv("OPENAI_API_KEY")
     return None
@@ -170,6 +179,19 @@ def make_llm(
             streaming=streaming,
             callbacks=callbacks,
             anthropic_api_key=key,
+        )
+
+    if provider == "openrouter":
+        # OpenRouter is OpenAI-compatible; old langchain ChatOpenAI accepts
+        # openai_api_base to point at a custom endpoint.
+        return langchain.chat_models.ChatOpenAI(
+            temperature=temp,
+            model_name=model,
+            request_timeout=1000,
+            streaming=streaming,
+            callbacks=callbacks,
+            openai_api_key=key,
+            openai_api_base=OPENROUTER_BASE_URL,
         )
 
     if model.startswith("gpt-3.5-turbo") or model.startswith("gpt-4"):

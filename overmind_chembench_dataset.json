@@ -1,0 +1,164 @@
+{
+  "datapoints": [
+    {
+      "input": "What is the oxidation state of Mg in Mg(NO3)2?",
+      "expected_output": "2",
+      "tags": [
+        "oxidation_states",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the oxidation state of N in Mg(NO3)2?",
+      "expected_output": "5",
+      "tags": [
+        "oxidation_states",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the oxidation state of N in N2O?",
+      "expected_output": "1",
+      "tags": [
+        "oxidation_states",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the oxidation state of N in NO3-?",
+      "expected_output": "5",
+      "tags": [
+        "oxidation_states",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the total electron count of NaCl?",
+      "expected_output": "28",
+      "tags": [
+        "electron_counts",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the total electron count of H2O?",
+      "expected_output": "10",
+      "tags": [
+        "electron_counts",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the total electron count of SF6?",
+      "expected_output": "70",
+      "tags": [
+        "electron_counts",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "What is the total electron count of BF3?",
+      "expected_output": "32",
+      "tags": [
+        "electron_counts",
+        "general_chemistry"
+      ]
+    },
+    {
+      "input": "The molecular formula of cubane is CxH8. What is the value of x?",
+      "expected_output": "8",
+      "tags": [
+        "molecular_formula",
+        "organic_chemistry"
+      ]
+    },
+    {
+      "input": "The anaerobic fermentation of glucose is C6H12O6 -> xC2H5OH + 2CO2. What is the value of x?",
+      "expected_output": "2",
+      "tags": [
+        "stoichiometry",
+        "physical_chemistry"
+      ]
+    },
+    {
+      "input": "The chemical formula for silver nitrate(V) is AgNOx. What is x?",
+      "expected_output": "3",
+      "tags": [
+        "molecular_formula",
+        "physical_chemistry"
+      ]
+    },
+    {
+      "input": "The Sabatier reaction is CO2 + xH2 -> CH4 + 2H2O. What is the value of x?",
+      "expected_output": "4",
+      "tags": [
+        "stoichiometry",
+        "physical_chemistry"
+      ]
+    },
+    {
+      "input": "How many structural isomers (excluding stereochemistry) are there for C3H6?",
+      "expected_output": "2",
+      "tags": [
+        "isomers",
+        "organic_chemistry"
+      ]
+    },
+    {
+      "input": "How many structural isomers (excluding stereochemistry) are there for C5H12?",
+      "expected_output": "3",
+      "tags": [
+        "isomers",
+        "organic_chemistry"
+      ]
+    },
+    {
+      "input": "How many structural isomers (excluding stereochemistry) are there for C2H7N?",
+      "expected_output": "2",
+      "tags": [
+        "isomers",
+        "organic_chemistry"
+      ]
+    },
+    {
+      "input": "How many structural isomers (excluding stereochemistry) are there for CH5N?",
+      "expected_output": "1",
+      "tags": [
+        "isomers",
+        "organic_chemistry"
+      ]
+    },
+    {
+      "input": "What is the number of peaks in the 1H NMR spectrum of the molecule with SMILES C1(=C(C)C=CC(C)=C1)?",
+      "expected_output": "2",
+      "tags": [
+        "nmr",
+        "analytical_chemistry"
+      ]
+    },
+    {
+      "input": "What is the number of peaks in the 1H NMR spectrum of the molecule with SMILES CC(=O)N1CCC1=O?",
+      "expected_output": "3",
+      "tags": [
+        "nmr",
+        "analytical_chemistry"
+      ]
+    },
+    {
+      "input": "What is the number of peaks in the 1H NMR spectrum of the molecule with SMILES CC1(C)CCOC(=O)O1?",
+      "expected_output": "3",
+      "tags": [
+        "nmr",
+        "analytical_chemistry"
+      ]
+    },
+    {
+      "input": "What is the number of peaks in the 1H NMR spectrum of the molecule with SMILES C1=NN2N=CC=NC2=C1?",
+      "expected_output": "4",
+      "tags": [
+        "nmr",
+        "analytical_chemistry"
+      ]
+    }
+  ]
+}

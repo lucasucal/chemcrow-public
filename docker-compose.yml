@@ -17,18 +17,45 @@ services:
 
   agent:
     build: .
+    image: chemcrow-agent:local
+    pull_policy: never
     container_name: chemcrow-agent
     env_file: .env
     environment:
       RXN_PREDICT_URL: http://rxnpred:5000/api/v1/run
       RXN_RETRO_URL: http://retrosynthesis:5000/api/v1/run
       AGENT_PORT: "8080"
+      OVERMIND_API_URL: http://host.docker.internal:8000
+      OVERMIND_CWD: /app
     ports:
       - "8080:8080"
     volumes:
-      - ./chemcrow:/app/chemcrow   # live-mount source so Overmind diffs take effect
-      - ./run_agent.py:/app/run_agent.py
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - rxnpred
       - retrosynthesis
+    restart: unless-stopped
+
+  # Same image as agent — no second build. Idle shell for pasting the Overmind curl.
+  executioner:
+    image: chemcrow-agent:local
+    pull_policy: never
+    container_name: chemcrow-executioner
+    env_file: .env
+    environment:
+      RXN_PREDICT_URL: http://rxnpred:5000/api/v1/run
+      RXN_RETRO_URL: http://retrosynthesis:5000/api/v1/run
+      OVERMIND_API_URL: http://host.docker.internal:8000
+      OVERMIND_CWD: /app
+    volumes:
+      - .:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - agent
+      - rxnpred
+      - retrosynthesis
+    entrypoint: ["sleep", "infinity"]
     restart: unless-stopped
