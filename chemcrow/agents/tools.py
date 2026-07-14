@@ -4,9 +4,15 @@ from typing import Any, Optional, Type
 from langchain import agents
 from langchain.base_language import BaseLanguageModel
 from langchain.tools import BaseTool
+from overmind import tool
 from pydantic import BaseModel
 
 from chemcrow.tools import *
+
+
+@tool("Name2SMILES")
+def Name2SMILES(query: str, chemspace_api_key: str = None) -> str:
+    return Query2SMILES(chemspace_api_key)._run(query)
 
 
 class RobustTool(BaseTool):
@@ -49,6 +55,17 @@ def _robustify(tool: BaseTool) -> RobustTool:
     )
 
 
+def _trace_langchain_tool(t: BaseTool) -> BaseTool:
+    original_run = t._run
+
+    @tool(t.name)
+    def _traced(*args: Any, **kwargs: Any) -> str:
+        return original_run(*args, **kwargs)
+
+    t._run = _traced
+    return t
+
+
 def _safe_build(label: str, factory):
     """Build a tool, skipping it (with a warning) if construction fails.
 
@@ -73,14 +90,17 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, local_rxn: bool=Fals
         "SEMANTIC_SCHOLAR_API_KEY"
     )
 
-    all_tools = agents.load_tools(
-        [
-            "python_repl",
-            # "ddg-search",
-            "wikipedia",
-            # "human"
-        ]
-    )
+    all_tools = [
+        _trace_langchain_tool(t)
+        for t in agents.load_tools(
+            [
+                "python_repl",
+                # "ddg-search",
+                "wikipedia",
+                # "human"
+            ]
+        )
+    ]
 
     core_tools = [
         _safe_build("Name2SMILES", lambda: Query2SMILES(chemspace_api_key)),

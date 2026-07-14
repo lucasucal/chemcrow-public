@@ -4,6 +4,7 @@ import molbloom
 import pandas as pd
 import requests
 from langchain.tools import BaseTool
+from overmind import tool
 
 from chemcrow.utils import is_smiles
 
@@ -180,6 +181,7 @@ class GetMoleculePrice(BaseTool):
         self.chemspace_api_key = chemspace_api_key
         self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
 
+    @tool("GetMoleculePrice")
     def _run(self, query: str) -> str:
         if not self.chemspace_api_key:
             return "No Chemspace API key found. This tool may not be used without a Chemspace API key."

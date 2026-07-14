@@ -11,6 +11,7 @@ RXN_RETRO_URL = os.getenv("RXN_RETRO_URL", "http://localhost:8052/api/v1/run")
 from langchain.base_language import BaseLanguageModel
 from langchain.schema import HumanMessage
 from langchain.tools import BaseTool
+from overmind import observe, tool
 
 from chemcrow.utils import is_smiles
 
@@ -27,6 +28,7 @@ class RXNPredictLocal(BaseTool):
         "returns SMILES of the products."
     )
 
+    @tool("ReactionPredict")
     def _run(self, reactants: str) -> str:
         """Run reaction prediction."""
         if not is_smiles(reactants):
@@ -62,9 +64,9 @@ class RXNRetrosynthesisLocal(BaseTool):
         super().__init__()
         self.llm = llm
 
+    @tool("ReactionRetrosynthesis")
     def _run(self, reactants: str) -> str:
         """Run reaction prediction."""
-        # Check that input is smiles
         if not is_smiles(reactants):
             return "Incorrect input."
 
@@ -102,7 +104,8 @@ class RXNRetrosynthesisLocal(BaseTool):
         rxns = list(_clean_actions(path))
         return rxns
 
-    def _summary_gpt(self, json: dict) -> str:
+    @observe("retrosynthesis_recipe_writer")
+    def retrosynthesis_recipe_writer(self, json: dict) -> str:
         """Describe synthesis."""
         if self.llm is None:
             raise ValueError("LLM is required for retrosynthesis summarization.")
@@ -118,3 +121,6 @@ class RXNRetrosynthesisLocal(BaseTool):
             f"details as possible.\n {str(json)}"
         )
         return self.llm([HumanMessage(content=prompt)]).content
+
+    def _summary_gpt(self, json: dict) -> str:
+        return self.retrosynthesis_recipe_writer(json)

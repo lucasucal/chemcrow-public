@@ -38,6 +38,7 @@ setup(
         "rxn4chemistry",
         "duckduckgo-search",
         "wikipedia",
+        "overmind",
     ],
     test_suite="tests",
     long_description=long_description,

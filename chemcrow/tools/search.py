@@ -8,6 +8,7 @@ import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
 from langchain.tools import BaseTool
+from overmind import observe, tool
 
 from chemcrow.llm import make_embeddings
 from pypdf.errors import PdfReadError
@@ -26,7 +27,8 @@ def paper_scraper(search: str, pdir: str = "query", semantic_scholar_api_key: st
         return {}
 
 
-def paper_search(llm, query, semantic_scholar_api_key=None):
+@observe("scholar_search_query_generator")
+def scholar_search_query_generator(llm, query):
     prompt = langchain.prompts.PromptTemplate(
         input_variables=["question"],
         template="""
@@ -38,12 +40,21 @@ def paper_search(llm, query, semantic_scholar_api_key=None):
     )
 
     query_chain = langchain.chains.llm.LLMChain(llm=llm, prompt=prompt)
+    return query_chain.run(query)
+
+
+def paper_search(llm, query, semantic_scholar_api_key=None):
     if not os.path.isdir("./query"):  # todo: move to ckpt
         os.mkdir("query/")
-    search = query_chain.run(query)
+    search = scholar_search_query_generator(llm, query)
     print("\nSearch:", search)
     papers = paper_scraper(search, pdir=f"query/{re.sub(' ', '', search)}", semantic_scholar_api_key=semantic_scholar_api_key)
     return papers
+
+
+@observe("literature_rag_answer")
+def literature_rag_answer(docs, query, k=5, max_sources=2):
+    return docs.query(query, k=k, max_sources=max_sources).formatted_answer
 
 
 def scholar2result_llm(llm, query, k=5, max_sources=2, openai_api_key=None, semantic_scholar_api_key=None):
@@ -69,7 +80,7 @@ def scholar2result_llm(llm, query, k=5, max_sources=2, openai_api_key=None, sema
     else:
         print(f"\nFound {len(papers.items())} papers and loaded all of them.")
 
-    answer = docs.query(query, k=k, max_sources=max_sources).formatted_answer
+    answer = literature_rag_answer(docs, query, k=k, max_sources=max_sources)
     return answer
 
 
@@ -91,6 +102,7 @@ class Scholar2ResultLLM(BaseTool):
         self.openai_api_key = openai_api_key
         self.semantic_scholar_api_key = semantic_scholar_api_key
 
+    @tool("LiteratureSearch")
     def _run(self, query) -> str:
         return scholar2result_llm(
             self.llm,
@@ -125,6 +137,7 @@ class WebSearch(BaseTool):
         super().__init__()
         self.serp_api_key = serp_api_key
 
+    @tool("WebSearch")
     def _run(self, query: str) -> str:
         if not self.serp_api_key:
             return (
@@ -140,8 +153,8 @@ class PatentCheck(BaseTool):
     name = "PatentCheck"
     description = "Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period."
 
+    @tool("PatentCheck")
     def _run(self, smiles: str) -> str:
-        """Checks if compound is patented. Give this tool only one SMILES string"""
         if is_multiple_smiles(smiles):
             smiles_list = split_smiles(smiles)
         else:
