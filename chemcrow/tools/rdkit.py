@@ -1,4 +1,5 @@
 from langchain.tools import BaseTool
+from overmind import tool
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
@@ -14,6 +15,7 @@ class MolSimilarity(BaseTool):
     def __init__(self):
         super().__init__()
 
+    @tool("MolSimilarity")
     def _run(self, smiles_pair: str) -> str:
         smi_list = smiles_pair.split(".")
         if len(smi_list) != 2:
@@ -57,6 +59,7 @@ class SMILES2Weight(BaseTool):
     ):
         super().__init__()
 
+    @tool("SMILES2Weight")
     def _run(self, smiles: str) -> str:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
@@ -132,6 +135,7 @@ class FuncGroups(BaseTool):
         mol = Chem.MolFromSmiles(mol.strip())
         return len(Chem.Mol.GetSubstructMatches(mol, fgmol, uniquify=True)) > 0
 
+    @tool("FunctionalGroups")
     def _run(self, smiles: str) -> str:
         """
         Input a molecule SMILES or name.

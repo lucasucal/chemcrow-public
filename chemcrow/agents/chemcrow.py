@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dotenv import load_dotenv
+from overmind import entry_point
 from langchain import PromptTemplate, chains
 from pydantic import ValidationError
 from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
@@ -89,6 +90,7 @@ class ChemCrow:
 
         self.rephrase_chain = chains.LLMChain(prompt=rephrase, llm=self.llm)
 
+    @entry_point("ChemCrow")
     def run(self, prompt):
         outputs = self.agent_executor({"input": prompt})
         return outputs["output"]

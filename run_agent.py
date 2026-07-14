@@ -19,12 +19,21 @@ import sys
 import traceback
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+from overmind import entry_point, init
+
+init(service_name="ChemCrow")
+
 from chemcrow.agents import ChemCrow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
 PORT = int(os.getenv("AGENT_PORT", "8000"))
+
+
+@entry_point("ChemCrow")
+def run_chemcrow(agent: ChemCrow, query: str) -> str:
+    return agent.run(query)
 
 
 def build_agent() -> ChemCrow:
@@ -73,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
 
         log.info("Query: %s", query)
         try:
-            output = self.agent.run(query)
+            output = run_chemcrow(self.agent, query)
             self._send_json(200, {"output": output})
         except Exception as e:
             log.error("Agent error: %s", traceback.format_exc())
@@ -93,7 +102,7 @@ def serve():
 
 def cli(query: str):
     agent = build_agent()
-    print(agent.run(query))
+    print(run_chemcrow(agent, query))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 from langchain.tools import BaseTool
+from overmind import tool
 
 from chemcrow.tools.chemspace import ChemSpace
 from chemcrow.tools.safety import ControlChemCheck
@@ -29,6 +30,7 @@ class Query2CAS(BaseTool):
             "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{}/JSON"
         )
 
+    @tool("Mol2CAS")
     def _run(self, query: str) -> str:
         try:
             # if query is smiles
@@ -69,6 +71,7 @@ class Query2SMILES(BaseTool):
         self.chemspace_api_key = chemspace_api_key
         self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
 
+    @tool("Name2SMILES")
     def _run(self, query: str) -> str:
         """This function queries the given molecule name and returns a SMILES string from the record"""
         """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
@@ -107,8 +110,8 @@ class SMILES2Name(BaseTool):
     def __init__(self):
         super().__init__()
 
+    @tool("SMILES2Name")
     def _run(self, query: str) -> str:
-        """Use the tool."""
         try:
             if not is_smiles(query):
                 try:

@@ -11,6 +11,7 @@ import tiktoken
 from langchain import LLMChain, PromptTemplate
 from langchain.llms import BaseLLM
 from langchain.tools import BaseTool
+from overmind import observe, tool
 
 from chemcrow.utils import is_smiles, pubchem_query2smiles, tanimoto
 
@@ -130,6 +131,17 @@ class MoleculeSafety:
         num_tokens = len(encoding.encode(string))
         return num_tokens
 
+    @observe("safety_chunk_summarizer")
+    def safety_chunk_summarizer(self, llm_chain_short, info, approx_length):
+        if self._num_tokens(str(info)) > approx_length:
+            trunc_info = str(info)[:approx_length]
+            return llm_chain_short.run(
+                {"data": str(trunc_info), "approx_length": approx_length}
+            )
+        return llm_chain_short.run(
+            {"data": str(info), "approx_length": approx_length}
+        )
+
     def get_safety_summary(self, cas):
         safety_data = self._get_safety_data(cas)
         approx_length = int(
@@ -142,19 +154,9 @@ class MoleculeSafety:
 
         llm_output = []
         for info in safety_data:
-            if self._num_tokens(str(info)) > approx_length:
-                trunc_info = str(info)[:approx_length]
-                llm_output.append(
-                    llm_chain_short.run(
-                        {"data": str(trunc_info), "approx_length": approx_length}
-                    )
-                )
-            else:
-                llm_output.append(
-                    llm_chain_short.run(
-                        {"data": str(info), "approx_length": approx_length}
-                    )
-                )
+            llm_output.append(
+                self.safety_chunk_summarizer(llm_chain_short, info, approx_length)
+            )
         return llm_output
 
 
@@ -179,6 +181,11 @@ class SafetySummary(BaseTool):
         )
         self.llm_chain = LLMChain(prompt=prompt, llm=self.llm)
 
+    @observe("safety_report_synthesizer")
+    def safety_report_synthesizer(self, data):
+        return self.llm_chain.run(" ".join(data))
+
+    @tool("SafetySummary")
     def _run(self, cas: str) -> str:
         if is_smiles(cas):
             return "Please input a valid CAS number."
@@ -187,7 +194,7 @@ class SafetySummary(BaseTool):
             return "Molecule not found in Pubchem."
 
         data = self.mol_safety.get_safety_summary(cas)
-        return self.llm_chain.run(" ".join(data))
+        return self.safety_report_synthesizer(data)
 
     async def _arun(self, cas_number):
         raise NotImplementedError("Async not implemented.")
@@ -202,6 +209,7 @@ class ExplosiveCheck(BaseTool):
         super().__init__()
         self.mol_safety = MoleculeSafety()
 
+    @tool("ExplosiveCheck")
     def _run(self, cas_number):
         """Checks if a molecule has an explosive GHS classification using pubchem."""
         # first check if the input is a CAS number
@@ -225,6 +233,7 @@ class SimilarControlChemCheck(BaseTool):
     name = "SimilarityToControlChem"
     description = "Input SMILES, returns similarity to controlled chemicals."
 
+    @tool("SimilarityToControlChem")
     def _run(self, smiles: str) -> str:
         """Checks max similarity between compound and controlled chemicals.
         Input SMILES string."""
@@ -267,6 +276,7 @@ class ControlChemCheck(BaseTool):
     description = "Input CAS number, True if molecule is a controlled chemical."
     similar_control_chem_check = SimilarControlChemCheck()
 
+    @tool("ControlChemCheck")
     def _run(self, query: str) -> str:
         """Checks if compound is a controlled chemical. Input CAS number."""
         data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
